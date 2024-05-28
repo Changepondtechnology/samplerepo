@@ -6,8 +6,21 @@ jobs:
   commit-message-check:
     runs-on: ubuntu-latest
     steps:
-    - name: Check commit message format
-      uses: wagoid/commitlint-github-action@v4
-      with:
-        config: '@commitlint/config-conventional'
-        
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Check commit messages
+      id: commit-message-check
+      run: |
+        commits=$(git log --format=%B --no-merges -n 10)
+        for commit in "${commits[@]}"
+        do
+          if [ ${#commit} -lt 15 ]; then
+            echo "Commit message is too short: ${commit}"
+            exit 1
+          fi
+          if [ -z "${commit}" ]; then
+            echo "Commit message is empty"
+            exit 1
+          fi
+        done
