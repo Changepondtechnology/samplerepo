@@ -1,28 +1,21 @@
-name: Enforce Commit Message
-
+name: 'Commit Message Check'
 on:
   pull_request:
-    types: [opened, synchronize]
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+    branches:
+      - develop
 
 jobs:
-  enforce-commit-message:
+  check-commit-message:
+    name: Check Commit Message
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Verify commit messages
-        run: |
-          COMMIT_MESSAGES=$(git log --format=%B ${{ github.event.before }}..${{ github.event.after }})
-          MIN_LENGTH=15  # Adjust the minimum length as needed
-          for COMMIT_MESSAGE in $COMMIT_MESSAGES; do
-            COMMIT_MESSAGE_LENGTH=${#COMMIT_MESSAGE}
-            if [[ -z "$COMMIT_MESSAGE" ]]; then
-              echo "Error: Commit message cannot be empty."
-              exit 1
-            elif (( COMMIT_MESSAGE_LENGTH < MIN_LENGTH )); then
-              echo "Error: Commit message must have at least $MIN_LENGTH characters."
-              exit 1
-            fi
-          done
+      - name: Check for Resolves / Fixes
+        uses: gsactions/commit-message-checker@v1
+        with:
+          pattern: '^.+AB#[0-9]{5,6}\]+.*$'
+          error: 'You need at least one "AB#<issue number>" line.'
