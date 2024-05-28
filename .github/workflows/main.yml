@@ -1,0 +1,22 @@
+name: Enforce Commit Message
+
+on:
+  push:
+    branches:
+      - "*"  # Adjust the branch name as needed
+
+jobs:
+  enforce-commit-message:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Verify commit message
+        run: |
+          COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
+          if [[ -z "$COMMIT_MESSAGE" ]]; then
+            echo "Error: Commit message cannot be empty."
+            exit 1
+          fi
