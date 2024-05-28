@@ -3,7 +3,7 @@ name: Enforce Commit Message
 on:
   push:
     branches:
-      - '*'  # Trigger on all branches
+      - '*'  # Adjust the branch name as needed
 
 jobs:
   enforce-commit-message:
@@ -16,7 +16,12 @@ jobs:
       - name: Verify commit message
         run: |
           COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
+          COMMIT_MESSAGE_LENGTH=${#COMMIT_MESSAGE}
+          MIN_LENGTH=15  # Adjust the minimum length as needed
           if [[ -z "$COMMIT_MESSAGE" ]]; then
             echo "Error: Commit message cannot be empty."
+            exit 1
+          elif (( COMMIT_MESSAGE_LENGTH < MIN_LENGTH )); then
+            echo "Error: Commit message must have at least $MIN_LENGTH characters."
             exit 1
           fi
