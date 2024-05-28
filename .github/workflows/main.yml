@@ -1,9 +1,8 @@
 name: Enforce Commit Message
 
 on:
-  push:
-    branches:
-      - '*'  # Adjust the branch name as needed
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   enforce-commit-message:
@@ -12,16 +11,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
-      - name: Verify commit message
+
+      - name: Verify commit messages
         run: |
-          COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
-          COMMIT_MESSAGE_LENGTH=${#COMMIT_MESSAGE}
+          COMMIT_MESSAGES=$(git log --format=%B ${{ github.event.before }}..${{ github.event.after }})
           MIN_LENGTH=15  # Adjust the minimum length as needed
-          if [[ -z "$COMMIT_MESSAGE" ]]; then
-            echo "Error: Commit message cannot be empty."
-            exit 1
-          elif (( COMMIT_MESSAGE_LENGTH < MIN_LENGTH )); then
-            echo "Error: Commit message must have at least $MIN_LENGTH characters."
-            exit 1
-          fi
+          for COMMIT_MESSAGE in $COMMIT_MESSAGES; do
+            COMMIT_MESSAGE_LENGTH=${#COMMIT_MESSAGE}
+            if [[ -z "$COMMIT_MESSAGE" ]]; then
+              echo "Error: Commit message cannot be empty."
+              exit 1
+            elif (( COMMIT_MESSAGE_LENGTH < MIN_LENGTH )); then
+              echo "Error: Commit message must have at least $MIN_LENGTH characters."
+              exit 1
+            fi
+          done
