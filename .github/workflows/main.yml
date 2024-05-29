@@ -1,21 +1,26 @@
-name: 'Commit Message Check'
-on:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - reopened
-      - synchronize
-    branches:
-      - develop
+name: Check Commit Messages
+
+on: [push]
 
 jobs:
-  check-commit-message:
-    name: Check Commit Message
+  commit-message-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check for Resolves / Fixes
-        uses: gsactions/commit-message-checker@v1
-        with:
-          pattern: '^.+AB#[0-9]{5,6}\]+.*$'
-          error: 'You need at least one "AB#<issue number>" line.'
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Check commit messages
+      id: commit-message-check
+      run: |
+        commits=$(git log --format=%B --no-merges -n 10)
+        for commit in "${commits[@]}"
+        do
+          if [ ${#commit} -lt 15 ]; then
+            echo "Commit message is too short: ${commit}"
+            exit 1
+          fi
+          if [ -z "${commit}" ]; then
+            echo "Commit message is empty"
+            exit 1
+          fi
+        done
